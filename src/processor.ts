@@ -1,87 +1,141 @@
+/* eslint-disable prettier/prettier */
 import * as ss58 from "@subsquid/ss58";
 import {
-  EventHandlerContext,
   Store,
   SubstrateProcessor,
 } from "@subsquid/substrate-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { Account, HistoricalBalance } from "./model";
-import { BalancesTransferEvent } from "./types/events";
+import { request, gql } from 'graphql-request'
+import { TxState, QueryLog } from "./model";
 
-const processor = new SubstrateProcessor("kusama_balances");
+const processor = new SubstrateProcessor("talisman_txs");
 
 processor.setBatchSize(500);
 processor.setDataSource({
-  archive: lookupArchive("kusama")[0].url,
-  chain: "wss://kusama-rpc.polkadot.io",
-});
+  chain: 'wss://rpc.polkadot.io',
+  archive: lookupArchive('polkadot')[0].url,
+})
 
-const logEvery = process.env.SECRET_LOG_EVERY ? Number(process.env.SECRET_LOG_EVERY) : 30000
-if(logEvery > 0) {
-  setInterval(() => {
-    console.log({message: 'test', param1: 'test', ts: new Date()})
-  }, logEvery)
-} else  {
-  console.log({message: 'log every disabled', level: 'warn' })
-}
+const query = gql`
+  query ($limit: Int, $offset: Int) {
+    substrate_extrinsic(order_by: { id: asc }, limit: $limit, offset: $offset) {
+      id
+      blockHash
+      blockNumber
+      era
+      tip
+      signature
+      signer
+      indexInBlock
+      name
+      section
+      method
+			created_at
+      substrate_events {
+          name
+          section
+          method
+          params
+      }
+    }
+  }
+`
 
-processor.addEventHandler("balances.Transfer", async (ctx) => {
-  const transfer = getTransferEvent(ctx);
-  const tip = ctx.extrinsic?.tip || 0n;
-  const from = ss58.codec("kusama").encode(transfer.from);
-  const to = ss58.codec("kusama").encode(transfer.to);
+processor.addPostHook(async (context) => {
 
-  const fromAcc = await getOrCreate(ctx.store, Account, from);
-  fromAcc.balance = fromAcc.balance || 0n;
-  fromAcc.balance -= transfer.amount;
-  fromAcc.balance -= tip;
-  await ctx.store.save(fromAcc);
+	// set a tick start time for logging
+	const startTime = (new Date()).getTime()
+	
+	// set a variable for counting the total number of TXs in this loop  
+	let txCountTotal = 0
 
-  const toAcc = await getOrCreate(ctx.store, Account, to);
-  toAcc.balance = toAcc.balance || 0n;
-  toAcc.balance += transfer.amount;
-  await ctx.store.save(toAcc);
+  // hardcoded list of chains we're interested in.
+	// this should be dynamically pulled from somewhere in
+	// a future version as to require manual updates.
+	// do we need to store the latest tx count against the 
+	// row for easier lookup?
+	const chains = [
+    {
+      "chainId": "polkadot",
+      "url": "https://polkadot.indexer.gc.subsquid.io/v4/graphql"
+    },
+    {
+      "chainId": "kusama",
+      "url": "https://kusama.indexer.gc.subsquid.io/v4/graphql"
+    },
+  ]
 
-  await ctx.store.save(
-    new HistoricalBalance({
-      id: `${ctx.event.id}-to`,
-      account: fromAcc,
-      balance: fromAcc.balance,
-      date: new Date(ctx.block.timestamp),
+  // loop through all chains and fetch TXs
+	const chainQueries = await Promise.all(chains.map(async chain => {
+
+    // is there a better way to do this, outside of having to make a DB call for each chain?
+		// could we combine this into a single query outside of this loop
+		// eg: fetch all chainIds with TX count as a param? 
+		const offset = await context.store.count(TxState, {
+      chainId: chain.chainId
     })
-  );
 
-  await ctx.store.save(
-    new HistoricalBalance({
-      id: `${ctx.event.id}-from`,
-      account: toAcc,
-      balance: toAcc.balance,
-      date: new Date(ctx.block.timestamp),
-    })
-  );
+    console.log(chain.chainId, offset)
+		
+		// currently limit is set to 10
+		// future version we could have pre defined values eg 10, 20, 50?
+    const variables = {
+      limit: 1000,
+      offset
+    }
+
+    const result = await request(chain.url, query, variables)
+		return {
+			chainId: chain.chainId,
+			result
+		}
+  }))
+	
+	// itterate all returned promises and add all the
+  for (const chainQuery of chainQueries) {
+		// pull out the relevant items
+		const { chainId } = chainQuery
+		const extrensics = chainQuery.result.substrate_extrinsic;
+		
+		// add the TX count from this chain to the total TXs
+		txCountTotal += extrensics.length
+    // loop all extrinsics and add to DB
+		// note: can we upsert batch?
+		for (const extrensic of extrensics) {
+			await context.store.upsert(TxState, {
+        "id" : `${chainId}-${extrensic.id}`,
+        "chainId" : chainId,
+        "blockNumber" : extrensic.blockNumber,
+        "createdAt" : extrensic.created_at,
+        "section" : extrensic.section,
+        "method" : extrensic.method,
+        "relatedAddresses" : []
+      }, ['id'])
+    }
+  }
+
+	// log an end time
+	const endTime = (new Date()).getTime()
+
+  console.log(context.block.height)
+	// commit new log to log store
+	await context.store.upsert(QueryLog, {
+    "id": `${context.block.height}`,
+	  "blockNumber": BigInt(context.block.height),
+		"startTime": new Date(startTime),
+	  "endTime": new Date(endTime),
+	  "lengthMs": endTime - startTime,
+		"chainCount": chains.length,
+		"txCount": txCountTotal  
+  }, ['id'])
+})
+
+// Subsquid won't work unless this function is here
+processor.addEventHandler("balances.Transfer", async () => {
+  // do nothing
 });
 
 processor.run();
-
-interface TransferEvent {
-  from: Uint8Array;
-  to: Uint8Array;
-  amount: bigint;
-}
-
-function getTransferEvent(ctx: EventHandlerContext): TransferEvent {
-  const event = new BalancesTransferEvent(ctx);
-  if (event.isV1020) {
-    const [from, to, amount] = event.asV1020;
-    return { from, to, amount };
-  } else if (event.isV1050) {
-    const [from, to, amount] = event.asV1050;
-    return { from, to, amount };
-  } else {
-    const { from, to, amount } = event.asV9130;
-    return { from, to, amount };
-  }
-}
 
 async function getOrCreate<T extends { id: string }>(
   store: Store,

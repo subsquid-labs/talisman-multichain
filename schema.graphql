@@ -11,3 +11,23 @@ type HistoricalBalance @entity {
   balance: BigInt!
   date: DateTime!
 }
+
+type TxState @entity {
+  id: ID!
+  chainId: String!
+  blockNumber: BigInt!
+  createdAt: DateTime!
+  section: String!
+  method: String!
+  relatedAddresses: [String!]!
+}
+
+type QueryLog @entity {
+  id: ID!
+  blockNumber: BigInt!
+	startTime: DateTime!
+  endTime: DateTime!
+  lengthMs: Int!
+	chainCount: Int!
+	txCount: Int!
+}
