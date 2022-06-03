@@ -13,11 +13,11 @@ export class QueryLog {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   blockNumber!: bigint
 
-  @Column_("timestamp with time zone", {nullable: false})
-  startTime!: Date
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  startTime!: bigint
 
-  @Column_("timestamp with time zone", {nullable: false})
-  endTime!: Date
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  endTime!: bigint
 
   @Column_("int4", {nullable: false})
   lengthMs!: number

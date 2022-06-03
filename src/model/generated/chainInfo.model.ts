@@ -11,7 +11,7 @@ export class ChainInfo {
   id!: string
 
   @Column_("text", {nullable: false})
-  chainUrl!: string
+  url!: string
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   latestBlock!: bigint

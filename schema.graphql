@@ -1,18 +1,4 @@
-type Account @entity {
-  "Account address"
-  id: ID!
-  balance: BigInt!
-  historicalBalances: [HistoricalBalance!] @derivedFrom(field: "account")
-}
-
-type HistoricalBalance @entity {
-  id: ID!
-  account: Account!
-  balance: BigInt!
-  date: DateTime!
-}
-
-type TxState @entity {
+type Transactions @entity {
   id: ID!
   chainId: String!
   blockNumber: BigInt!
@@ -25,8 +11,8 @@ type TxState @entity {
 type QueryLog @entity {
   id: ID!
   blockNumber: BigInt!
-	startTime: DateTime!
-  endTime: DateTime!
+	startTime: BigInt!
+  endTime: BigInt!
   lengthMs: Int!
 	chainCount: Int!
 	txCount: Int!
@@ -39,8 +25,7 @@ type ChainInfo @entity {
   latestBlock: BigInt!
 }
 
-# this is a key/val store for anything
 type Metadata @entity {
   id: ID!
-  value: String|Int!
+  value: String!
 }
