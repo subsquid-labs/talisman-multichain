@@ -6,7 +6,7 @@ import {
 } from "@subsquid/substrate-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { request, gql } from 'graphql-request'
-import { TxState, QueryLog } from "./model";
+import { TxState, QueryLog, ChainInfo, Metadata } from "./model";
 
 const processor = new SubstrateProcessor("talisman_txs");
 
@@ -17,29 +17,53 @@ processor.setDataSource({
 })
 
 const query = gql`
-  query ($limit: Int, $offset: Int) {
-    substrate_extrinsic(order_by: { id: asc }, limit: $limit, offset: $offset) {
-      id
-      blockHash
-      blockNumber
-      era
-      tip
-      signature
-      signer
-      indexInBlock
-      name
-      section
-      method
-			created_at
-      substrate_events {
+  query ($limit: Int, $blockNumber: BigInt) {
+    substrate_block(limit: $limit, order_by: {height : asc}, where: {height : {_gt: $blockNumber }}) {
+      height
+      substrate_extrinsics {
+          id
+          blockHash
+          blockNumber
+          created_at
+          era
+          tip
+          signature
+          signer
+          indexInBlock
           name
           section
           method
-          params
+          substrate_events {
+              name
+              section
+              method
+              params
+          }
       }
     }
   }
 `
+
+// chains we're interested in
+// will come from external source later
+// hardcoded for now
+const chains = [
+  {
+    "chainId": "polkadot",
+    "url": "https://polkadot.indexer.gc.subsquid.io/v4/graphql",
+    "startBlock": 10582406
+  },
+  {
+    "chainId": "kusama",
+    "url": "https://kusama.indexer.gc.subsquid.io/v4/graphql",
+    "startBlock": 12964919
+  },
+]
+
+// calculate the hash of the chains on startup
+const chainsHash = md5(chains) // <-- josh
+
+// Add pre-hook
 
 processor.addPostHook(async (context) => {
 
@@ -54,37 +78,51 @@ processor.addPostHook(async (context) => {
 	// a future version as to require manual updates.
 	// do we need to store the latest tx count against the 
 	// row for easier lookup?
-	const chains = [
-    {
-      "chainId": "polkadot",
-      "url": "https://polkadot.indexer.gc.subsquid.io/v4/graphql"
-    },
-    {
-      "chainId": "kusama",
-      "url": "https://kusama.indexer.gc.subsquid.io/v4/graphql"
-    },
-  ]
+  
+  //   if what is below is different than in the DB
+  //   update the DB by adding the new chains
+  //   - we don;t want to do this every time
+  //   - only when it's changed
+  // 	- store a hash of the chains obj
+  //   - compare hash to
+  
+  // check the chains hash is different from what we previously have
+  // if !=, update all
+  const previousChainsHash = context.store.get(Metadata, {where: {a: b}}) // <-- josh
+  if(chainsHash != previousChainsHash){
+    
+    // hopefully promise is async and non-blocking
+    new Promise(() => {
+      chains.forEach(({chainId, url, startBlock = 0}) => {
+        
+        const chainFound = context.store.get(ChainInfo, {where: {id: chainId}}) // <-- josh
+
+        if(!chainFound){
+          context.store.insert(ChainInfo, {
+            "id": chainId,
+            "latestBlock": startBlock,
+          }, ['id'])
+        }
+      })
+    })
+  }
+
+  // now we have a updated list of all chains we're intested in and the blocks they're currently synced to
+  // allows us to add chains without breaking the currently stored chains
+  
+  // get all the chains from the DB
+  const storedChains = context.store.get(ChainInfo) // <-- josh
 
   // loop through all chains and fetch TXs
-	const chainQueries = await Promise.all(chains.map(async chain => {
-
-    // is there a better way to do this, outside of having to make a DB call for each chain?
-		// could we combine this into a single query outside of this loop
-		// eg: fetch all chainIds with TX count as a param? 
-		const offset = await context.store.count(TxState, {
-      chainId: chain.chainId
-    })
-
-    console.log(chain.chainId, offset)
-		
+	const chainQueries = await Promise.all(storedChains.map(async ({id, url, latestBlock}) => {
 		// currently limit is set to 10
 		// future version we could have pre defined values eg 10, 20, 50?
     const variables = {
-      limit: 1000,
-      offset
+      limit: 10,
+      blockNumber: latestBlock
     }
 
-    const result = await request(chain.url, query, variables)
+    const result = await request(url, query, variables)
 		return {
 			chainId: chain.chainId,
 			result
@@ -128,6 +166,7 @@ processor.addPostHook(async (context) => {
 		"chainCount": chains.length,
 		"txCount": txCountTotal  
   }, ['id'])
+  
 })
 
 // Subsquid won't work unless this function is here

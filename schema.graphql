@@ -31,3 +31,16 @@ type QueryLog @entity {
 	chainCount: Int!
 	txCount: Int!
 }
+
+# this maintains a list of all the chains we're intested in
+type ChainInfo @entity {
+  id: ID!
+  url: String!
+  latestBlock: BigInt!
+}
+
+# this is a key/val store for anything
+type Metadata @entity {
+  id: ID!
+  value: String|Int!
+}
