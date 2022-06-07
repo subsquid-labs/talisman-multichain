@@ -34,10 +34,17 @@ processor.addPostHook(async ctx => {
   logger.init(ctx)
 
   // attempt to sync chain store object
+  // this is not async because it can run the in the background
   chainStore.sync(ctx)
 
   // fetch all chains
   const allChains = await chainStore.all()
+
+  // 
+  // spin up factory
+  // do thing
+  // put results in DB
+  // that's it
 
   // loop through all chains and fetch TXs
 	const chainQueries = await Promise.all(allChains.map(async ({id, url, latestBlock}: any) => {
@@ -56,12 +63,18 @@ processor.addPostHook(async ctx => {
 	
   //itterate all returned promises and add all the
   for (const chainQuery of chainQueries) {
+    // <-- chain level
+
     // pull out the relevant items
     const { chainId, result }: any = chainQuery
 
     for (const { height, substrate_extrinsics } of result.substrate_block){
+      // <-- chain->block level
       
+      // parse all the TXs
       for (const extrensic of substrate_extrinsics) {
+        // <-- chain->block->tx level
+
         await ctx.store.upsert(Transactions, {
           "id" : `${chainId}-${extrensic.id}`,
           "chainId" : chainId,

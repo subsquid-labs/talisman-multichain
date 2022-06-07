@@ -1,14 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { ChainInfo, Metadata } from "./model";
+import { TChainConfig } from './types'
 
 var md5 = require('md5');
-
-export type TChain = {
-  chainId: string
-  url: string
-  startBlock?: any
-}
 
 // constructor type options
 type TOptions = {
@@ -23,10 +18,10 @@ const defaultOptions: TOptions = {
 export default class ChainStore {
 
   ctx: BlockHandlerContext|any
-  chains: TChain[] = []
+  chains: TChainConfig[] = []
   options: TOptions = defaultOptions
   
-  constructor(chains: TChain[], options: TOptions = defaultOptions){
+  constructor(chains: TChainConfig[], options: TOptions = defaultOptions){
     this.chains = chains
     this.options = options
   }
@@ -48,14 +43,26 @@ export default class ChainStore {
     if(chainsHash !== storedChainsHash?.value){
       
       // loop chains and add if not already
-      for (const {chainId, url, startBlock = 0} of this.chains) {
-        const chainFound = await ctx.store.findOne(ChainInfo, chainId)
-        if(!chainFound){
+      for (const chain of this.chains) {
+        const chainDetails = await ctx.store.findOne(ChainInfo, chain.chainId)
+        
+        // if no entry, insert new item
+        if(!chainDetails){
           ctx.store.insert(ChainInfo, {
-            "id": chainId,
-            "url": url,
-            "latestBlock": BigInt(startBlock),
+            "id": chain.chainId,
+            "url": chain.url,
+            "latestBlock": BigInt(chain?.startBlock||0),
+            "hash": md5(chain)
           })
+        }
+        // else if entry hash is diffeeren from that stored
+        // we want to update the details
+        else if(chainDetails?.hash != md5(chain)){
+          ctx.store.upsert(ChainInfo, {
+            "url": chain.url,
+            "latestBlock": BigInt(chain?.startBlock||0),
+            "hash": md5(chain)
+          }, ["id"])
         }
       }
 

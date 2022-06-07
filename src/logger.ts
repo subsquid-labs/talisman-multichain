@@ -1,16 +1,16 @@
 /* eslint-disable prettier/prettier */
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { QueryLog } from "./model";
-import { TChain } from './chainstore'
+import { TChainConfig } from './types'
 
 export default class Logger{
 
   ctx: BlockHandlerContext|any
-  chains: TChain[] = []
+  chains: TChainConfig[] = []
   startTime = (new Date()).getTime()
   txCount: Number = 0
 
-  constructor(chains: TChain[]){
+  constructor(chains: TChainConfig[]){
     this.chains = chains
   }
 

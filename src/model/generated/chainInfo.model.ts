@@ -15,4 +15,7 @@ export class ChainInfo {
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   latestBlock!: bigint
+
+  @Column_("text", {nullable: false})
+  hash!: string
 }

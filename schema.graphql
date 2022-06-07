@@ -23,6 +23,7 @@ type ChainInfo @entity {
   id: ID!
   url: String!
   latestBlock: BigInt!
+  hash: String!
 }
 
 type Metadata @entity {
