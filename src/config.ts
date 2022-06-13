@@ -3,7 +3,7 @@ import { gql } from 'graphql-request'
 
 // the current squid block to start on
 // wish we could define this as -1 to start from the current block
-export const START_BLOCK = 10622123
+export const START_BLOCK = 10725538
 
 // the number of blocks to query at once
 export const BLOCK_LIMIT = 10

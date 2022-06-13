@@ -1,4 +1,4 @@
-type Transactions @entity {
+type Transaction @entity {
   id: ID!
   chainId: String!
   blockNumber: BigInt!

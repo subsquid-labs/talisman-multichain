@@ -6,7 +6,7 @@ import {
 } from "@subsquid/substrate-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
 import { request, gql } from 'graphql-request'
-import { Transactions, QueryLog, ChainInfo, Metadata } from "./model";
+import { Transaction, QueryLog, ChainInfo, Metadata } from "./model";
 import Logger from './Logger'
 import ChainStore from './ChainStore'
 import { START_BLOCK, BLOCK_QUERY, BLOCK_LIMIT, chains } from './config'
@@ -75,7 +75,7 @@ processor.addPostHook(async ctx => {
       for (const extrensic of substrate_extrinsics) {
         // <-- chain->block->tx level
 
-        await ctx.store.upsert(Transactions, {
+        await ctx.store.upsert(Transaction, {
           "id" : `${chainId}-${extrensic.id}`,
           "chainId" : chainId,
           "blockNumber" : extrensic.blockNumber,

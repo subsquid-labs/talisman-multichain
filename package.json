@@ -25,6 +25,7 @@
     "graphql-request": "^4.2.0",
     "md5": "^2.3.0",
     "pg": "^8.7.3",
+    "type-graphql": "^1.1.1",
     "typeorm": "^0.2.41"
   },
   "devDependencies": {
