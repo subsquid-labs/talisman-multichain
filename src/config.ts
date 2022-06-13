@@ -1,9 +1,10 @@
-import { TChainConfig } from './types'
+/* eslint-disable prettier/prettier */
 import { gql } from 'graphql-request'
+import { TChainConfig } from './types'
 
 // the current squid block to start on
 // wish we could define this as -1 to start from the current block
-export const START_BLOCK = 10622123
+export const START_BLOCK = 10666080
 
 // the number of blocks to query at once
 export const BLOCK_LIMIT = 10

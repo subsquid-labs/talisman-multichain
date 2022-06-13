@@ -1,5 +1,6 @@
 type Transactions @entity {
   id: ID!
+  order: String!
   chainId: String!
   blockNumber: BigInt!
   createdAt: DateTime!

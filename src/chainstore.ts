@@ -3,7 +3,7 @@ import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { ChainInfo, Metadata } from "./model";
 import { TChainConfig } from './types'
 
-var md5 = require('md5');
+const md5 = require('md5');
 
 // constructor type options
 type TOptions = {
@@ -15,11 +15,13 @@ const defaultOptions: TOptions = {
   timeout: 1
 }
 
-export default class ChainStore {
+export class ChainStore {
 
-  ctx: BlockHandlerContext|any
+  ctx: BlockHandlerContext | any
+  
   chains: TChainConfig[] = []
-  options: TOptions = defaultOptions
+
+  options: TOptions = defaultOptions 
   
   constructor(chains: TChainConfig[], options: TOptions = defaultOptions){
     this.chains = chains
@@ -27,7 +29,7 @@ export default class ChainStore {
   }
 
   // sync the DB
-  async sync(ctx: BlockHandlerContext){
+  async sync(ctx: BlockHandlerContext) : Promise<void> {
 
     this.ctx = ctx
 
@@ -37,7 +39,7 @@ export default class ChainStore {
 
     // we need to compare the stored and current chain hashes
     const storedChainsHash = await ctx.store.findOne(Metadata, 'chainsHash')
-    const chainsHash = md5(this.chains)
+    const chainsHash : string = md5(this.chains)
 
     // resync the DB if stored and current hashes don't match
     if(chainsHash !== storedChainsHash?.value){

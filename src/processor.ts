@@ -8,7 +8,7 @@ import { lookupArchive } from "@subsquid/archive-registry";
 import { request, gql } from 'graphql-request'
 import { Transactions, QueryLog, ChainInfo, Metadata } from "./model";
 import Logger from './Logger'
-import ChainStore from './ChainStore'
+import { ChainStore } from './ChainStore'
 import { START_BLOCK, BLOCK_QUERY, BLOCK_LIMIT, chains } from './config'
 
 // define the processor and variables
@@ -21,11 +21,11 @@ processor.setDataSource({
 })
 
 // create a new logger object
-const logger = new Logger(chains)
+const logger : Logger = new Logger(chains)
 
 // create a new chainstore object
 // resync every 10 blocks
-const chainStore = new ChainStore(chains, {timeout: 10})
+const chainStore : ChainStore = new ChainStore(chains, {timeout: 10})
 
 // post block hook used as clock to process chains 
 processor.addPostHook(async ctx => {
@@ -38,13 +38,14 @@ processor.addPostHook(async ctx => {
   chainStore.sync(ctx)
 
   // fetch all chains
-  const allChains = await chainStore.all()
+  const allChains : ChainStore[] = await chainStore.all()
 
   // 
   // spin up factory
   // do thing
   // put results in DB
   // that's it
+
 
   // loop through all chains and fetch TXs
 	const chainQueries = await Promise.all(allChains.map(async ({id, url, latestBlock}: any) => {
@@ -71,12 +72,15 @@ processor.addPostHook(async ctx => {
     for (const { height, substrate_extrinsics } of result.substrate_block){
       // <-- chain->block level
       
+
+      
       // parse all the TXs
       for (const extrensic of substrate_extrinsics) {
         // <-- chain->block->tx level
 
         await ctx.store.upsert(Transactions, {
-          "id" : `${chainId}-${extrensic.id}`,
+          "id" : `${chainId}-${extrensic.id}`, // polkadot-0010603618-000001-bc774
+          "order": `${Date.parse(extrensic.created_at)}${extrensic.id}${chainId}`, // 2022-06-04T12:19:20.296000Z,
           "chainId" : chainId,
           "blockNumber" : extrensic.blockNumber,
           "createdAt" : extrensic.created_at,

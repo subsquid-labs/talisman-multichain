@@ -1,5 +1,5 @@
 export type TChainConfig = {
-  chainId: string
-  url: string
-  startBlock: any
-}
+  chainId: string;
+  url: string;
+  startBlock: number;
+};
