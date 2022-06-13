@@ -6,16 +6,19 @@ import { TChainConfig } from './types'
 export default class Logger{
 
   ctx: BlockHandlerContext|any
+
   chains: TChainConfig[] = []
+
   startTime = (new Date()).getTime()
-  txCount: Number = 0
+
+  txCount = 0
 
   constructor(chains: TChainConfig[]){
     this.chains = chains
   }
 
   // add to the total TX count
-  addTxCount(count: Number){
+  addTxCount(count: number){
     this.txCount = +this.txCount + +count
   }
 

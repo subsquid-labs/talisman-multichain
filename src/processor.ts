@@ -8,7 +8,7 @@ import { lookupArchive } from "@subsquid/archive-registry";
 import { request, gql } from 'graphql-request'
 import { Transaction, QueryLog, ChainInfo, Metadata } from "./model";
 import Logger from './Logger'
-import ChainStore from './ChainStore'
+import { ChainStore } from './ChainStore'
 import { START_BLOCK, BLOCK_QUERY, BLOCK_LIMIT, chains } from './config'
 
 // define the processor and variables
@@ -21,11 +21,11 @@ processor.setDataSource({
 })
 
 // create a new logger object
-const logger = new Logger(chains)
+const logger : Logger = new Logger(chains)
 
 // create a new chainstore object
 // resync every 10 blocks
-const chainStore = new ChainStore(chains, {timeout: 10})
+const chainStore : ChainStore = new ChainStore(chains, {timeout: 10})
 
 // post block hook used as clock to process chains 
 processor.addPostHook(async ctx => {
@@ -38,13 +38,14 @@ processor.addPostHook(async ctx => {
   chainStore.sync(ctx)
 
   // fetch all chains
-  const allChains = await chainStore.all()
+  const allChains : ChainStore[] = await chainStore.all()
 
   // 
   // spin up factory
   // do thing
   // put results in DB
   // that's it
+
 
   // loop through all chains and fetch TXs
 	const chainQueries = await Promise.all(allChains.map(async ({id, url, latestBlock}: any) => {
@@ -71,18 +72,26 @@ processor.addPostHook(async ctx => {
     for (const { height, substrate_extrinsics } of result.substrate_block){
       // <-- chain->block level
       
+
+      
       // parse all the TXs
       for (const extrensic of substrate_extrinsics) {
         // <-- chain->block->tx level
+        
+        // find all unique addresses in the extrinsic
+        const matches = JSON.stringify(extrensic).matchAll( /[a-zA-Z0-9]{48}/g )
+        const addresses = [...new Set([...matches].map(match => match[0]).filter(s=>s))]
+        //console.log(addresses)
 
         await ctx.store.upsert(Transaction, {
-          "id" : `${chainId}-${extrensic.id}`,
+          "id": `${Date.parse(extrensic.created_at)}${extrensic.id}${chainId}`, // 2022-06-04T12:19:20.296000Z,
           "chainId" : chainId,
           "blockNumber" : extrensic.blockNumber,
           "createdAt" : extrensic.created_at,
           "section" : extrensic.section,
           "method" : extrensic.method,
-          "relatedAddresses" : []
+          "relatedAddresses" : addresses,
+          "raw" : addresses.join(',') // should probably store the whole json here
         }, ['id'])
       }
 

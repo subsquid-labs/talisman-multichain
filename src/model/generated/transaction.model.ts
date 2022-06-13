@@ -27,4 +27,7 @@ export class Transaction {
 
   @Column_("text", {array: true, nullable: false})
   relatedAddresses!: (string)[]
+
+  @Column_("text", {nullable: false})
+  raw!: string
 }

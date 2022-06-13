@@ -28,6 +28,9 @@ export class Transaction {
 
   @Field(() => [String], { nullable: true })
   related_addresses!: (string)[]
+
+  @Field(() => String, { nullable: true })
+  raw!: string
 }
 
 
@@ -38,23 +41,33 @@ export class TransactionResolver {
   @Query(() => [Transaction])
   async transactionsByAccount(
     @Arg('count', { nullable: true, defaultValue: defaultCount }) count: number,
-    @Arg('lastId', { nullable: true, defaultValue: '999999999999999999999' }) lastId: string
+    @Arg('lastId', { nullable: true, defaultValue: 'zzzzzzz' }) lastId: string,
+    @Arg('address', { nullable: false }) address: string
   ): Promise<Transaction[]> {
     const manager = await this.tx()
     
     const query = `
       SELECT * FROM transaction
-      WHERE method = 'set'
-      AND id < $1
+      WHERE $1 = ANY(related_addresses)
+      AND id < $2
       ORDER BY id DESC
-      LIMIT $2
+      LIMIT $3
     `
+
+    // const query = `
+    //   SELECT * FROM transaction
+    //   WHERE method = 'set'
+    //   AND id < $1
+    //   ORDER BY id DESC
+    //   LIMIT $2
+    // `
+
     // limit to batches of 5, 10 or 20
     // default to 10 if count is not defined correctly
     if(![5, 10, 20].includes(count)) count = defaultCount
     
     // fetch the result
-    const result = await manager.getRepository(TransactionModel).query(query, [lastId, count])
+    const result = await manager.getRepository(TransactionModel).query(query, [address, lastId, count])
 
     //
     const resultFormatted = result.map((item: Transaction) => {
