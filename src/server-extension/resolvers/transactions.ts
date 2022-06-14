@@ -40,9 +40,12 @@ export class TransactionResolver {
 
   @Query(() => [Transaction])
   async transactionsByAccount(
+    @Arg('address', { nullable: false }) address: string,
     @Arg('count', { nullable: true, defaultValue: defaultCount }) count: number,
     @Arg('lastId', { nullable: true, defaultValue: 'zzzzzzz' }) lastId: string,
-    @Arg('address', { nullable: false }) address: string
+    // todo
+    // section
+    // method
   ): Promise<Transaction[]> {
     const manager = await this.tx()
     

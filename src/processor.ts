@@ -90,6 +90,7 @@ processor.addPostHook(async ctx => {
           "createdAt" : extrensic.created_at,
           "section" : extrensic.section,
           "method" : extrensic.method,
+          //"sender" : extrensic.sender,
           "relatedAddresses" : addresses,
           "raw" : addresses.join(',') // should probably store the whole json here
         }, ['id'])
