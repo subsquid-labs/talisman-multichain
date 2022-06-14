@@ -11,21 +11,24 @@ export default class Logger{
 
   startTime = (new Date()).getTime()
 
-  txCount = 0
+  txCount: number = 0
+  txSize: number = 0
 
   constructor(chains: TChainConfig[]){
     this.chains = chains
   }
 
   // add to the total TX count
-  addTxCount(count: number){
-    this.txCount = +this.txCount + +count
+  addTxs(txs: any){
+    this.txCount += +txs.length
+    this.txSize += +Buffer.byteLength(JSON.stringify(txs))
   }
 
   // start the loggin process
   init(ctx: BlockHandlerContext){
     this.ctx = ctx
     this.txCount = 0
+    this.txSize = 0
     this.startTime = (new Date()).getTime()
   }
 
@@ -40,7 +43,9 @@ export default class Logger{
       "endTime": endTime,
       "lengthMs": endTime - this.startTime,
       "chainCount": this.chains.length,
-      "txCount": +this.txCount  
+      "chainIds": this.chains.map(({chainId}) => chainId),
+      "txCount": +this.txCount,
+      "txSize": this.txSize
     }, ['id'])      
   }
 }

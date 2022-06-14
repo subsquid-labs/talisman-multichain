@@ -1,7 +1,6 @@
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
 import { Transaction as TransactionModel } from "../../model";
-import { bigint } from '../../model/generated/marshal';
 
 const defaultCount = 10
 
@@ -43,9 +42,6 @@ export class TransactionResolver {
     @Arg('address', { nullable: false }) address: string,
     @Arg('count', { nullable: true, defaultValue: defaultCount }) count: number,
     @Arg('lastId', { nullable: true, defaultValue: 'zzzzzzz' }) lastId: string,
-    // todo
-    // section
-    // method
   ): Promise<Transaction[]> {
     const manager = await this.tx()
     
@@ -56,15 +52,6 @@ export class TransactionResolver {
       ORDER BY id DESC
       LIMIT $3
     `
-
-    // const query = `
-    //   SELECT * FROM transaction
-    //   WHERE method = 'set'
-    //   AND id < $1
-    //   ORDER BY id DESC
-    //   LIMIT $2
-    // `
-
     // limit to batches of 5, 10 or 20
     // default to 10 if count is not defined correctly
     if(![5, 10, 20].includes(count)) count = defaultCount
@@ -72,7 +59,7 @@ export class TransactionResolver {
     // fetch the result
     const result = await manager.getRepository(TransactionModel).query(query, [address, lastId, count])
 
-    //
+    // format results
     const resultFormatted = result.map((item: Transaction) => {
       return {
         ...item,

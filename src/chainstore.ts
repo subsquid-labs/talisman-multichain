@@ -15,7 +15,7 @@ const defaultOptions: TOptions = {
   timeout: 1
 }
 
-export class ChainStore {
+export default class ChainStore {
 
   ctx: BlockHandlerContext | any
   
@@ -47,6 +47,8 @@ export class ChainStore {
       // loop chains and add if not already
       for (const chain of this.chains) {
         const chainDetails = await ctx.store.findOne(ChainInfo, chain.chainId)
+        const chainHash = md5(JSON.stringify(chain))
+        const timestamp = BigInt((new Date()).getTime())
         
         // if no entry, insert new item
         if(!chainDetails){
@@ -54,16 +56,19 @@ export class ChainStore {
             "id": chain.chainId,
             "url": chain.url,
             "latestBlock": BigInt(chain?.startBlock||0),
-            "hash": md5(chain)
+            "hash": chainHash,
+            "createdAt": timestamp,
+            "updatedAt": timestamp
           })
         }
-        // else if entry hash is diffeeren from that stored
+        // else if entry hash is different from that stored
         // we want to update the details
-        else if(chainDetails?.hash != md5(chain)){
+        else if(chainDetails?.hash !== chainHash){
           ctx.store.upsert(ChainInfo, {
             "url": chain.url,
             "latestBlock": BigInt(chain?.startBlock||0),
-            "hash": md5(chain)
+            "hash": chainHash,
+            "updatedAt": timestamp
           }, ["id"])
         }
       }

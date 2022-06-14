@@ -1,19 +1,14 @@
 /* eslint-disable prettier/prettier */
-import * as ss58 from "@subsquid/ss58";
-import {
-  Store,
-  SubstrateProcessor,
-} from "@subsquid/substrate-processor";
+import { SubstrateProcessor } from "@subsquid/substrate-processor";
 import { lookupArchive } from "@subsquid/archive-registry";
-import { request, gql } from 'graphql-request'
-import { Transaction, QueryLog, ChainInfo, Metadata } from "./model";
-import Logger from './Logger'
-import { ChainStore } from './ChainStore'
-import { START_BLOCK, BLOCK_QUERY, BLOCK_LIMIT, chains } from './config'
+import Logger from './logger'
+import ChainStore from './chainStore'
+import ChainFactory from './chainFactory'
+import { START_BLOCK, BLOCK_LIMIT, chains } from './config'
 
 // define the processor and variables
 const processor = new SubstrateProcessor("talisman_txs");
-processor.setBlockRange({from: START_BLOCK}); // ???? maybe: -1 starts processing at the latest block so we don't go back in history from genesis
+processor.setBlockRange({from: START_BLOCK});
 processor.setBatchSize(1);
 processor.setDataSource({
   chain: 'wss://rpc.polkadot.io',
@@ -27,85 +22,36 @@ const logger : Logger = new Logger(chains)
 // resync every 10 blocks
 const chainStore : ChainStore = new ChainStore(chains, {timeout: 10})
 
+// create a new indexer object
+const chainFactory : ChainFactory = new ChainFactory()
+
 // post block hook used as clock to process chains 
 processor.addPostHook(async ctx => {
 
   // start the logger for this block
   logger.init(ctx)
 
-  // attempt to sync chain store object
-  // this is not async because it can run the in the background
+  // attempt to sync chain store object to the DB
+  // twe let this run the in the background so it doesn't block
   chainStore.sync(ctx)
 
   // fetch all chains
-  const allChains : ChainStore[] = await chainStore.all()
+  const chains : ChainStore[] = await chainStore.all()
 
-  // 
-  // spin up factory
-  // do thing
-  // put results in DB
-  // that's it
-
-
-  // loop through all chains and fetch TXs
-	const chainQueries = await Promise.all(allChains.map(async ({id, url, latestBlock}: any) => {
-    const variables = {
-      limit: BLOCK_LIMIT,
-      blockNumber: Number(latestBlock)
-    }
-
-    const result = await request(url, BLOCK_QUERY, variables)
-    
-    return {
-      chainId: id,
-      result
-    }
-  }))
-	
-  //itterate all returned promises and add all the
-  for (const chainQuery of chainQueries) {
-    // <-- chain level
-
-    // pull out the relevant items
-    const { chainId, result }: any = chainQuery
-
-    for (const { height, substrate_extrinsics } of result.substrate_block){
-      // <-- chain->block level
-      
-
-      
-      // parse all the TXs
-      for (const extrensic of substrate_extrinsics) {
-        // <-- chain->block->tx level
-        
-        // find all unique addresses in the extrinsic
-        const matches = JSON.stringify(extrensic).matchAll( /[a-zA-Z0-9]{48}/g )
-        const addresses = [...new Set([...matches].map(match => match[0]).filter(s=>s))]
-        //console.log(addresses)
-
-        await ctx.store.upsert(Transaction, {
-          "id": `${Date.parse(extrensic.created_at)}${extrensic.id}${chainId}`, // 2022-06-04T12:19:20.296000Z,
-          "chainId" : chainId,
-          "blockNumber" : extrensic.blockNumber,
-          "createdAt" : extrensic.created_at,
-          "section" : extrensic.section,
-          "method" : extrensic.method,
-          //"sender" : extrensic.sender,
-          "relatedAddresses" : addresses,
-          "raw" : addresses.join(',') // should probably store the whole json here
-        }, ['id'])
-      }
-
+  // process all chains on each tick
+  await chainFactory.processBlock({
+    ctx: ctx,
+    chains: chains,
+    limit: BLOCK_LIMIT, // how many blocks to process at once
+    afterBlockProcessed:  ({chain, extrinsics}) => {
       // update chain store to latest block in case we fail after this
-      chainStore.updateChainLatestBlock(chainId, height)
-
-      // add this TX count to logger
-      logger.addTxCount(substrate_extrinsics.length)
-
+      chainStore.updateChainLatestBlock(chain.id, chain.blockHeight)
+      // append details to logger
+      logger.addTxs(extrinsics)
     }
-  }
+  })
 
-  // log the result
+  // write to the log
   logger.write()  
 })
 

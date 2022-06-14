@@ -25,9 +25,12 @@ export class Transaction {
   @Column_("text", {nullable: false})
   method!: string
 
-  @Column_("text", {array: true, nullable: false})
-  relatedAddresses!: (string)[]
+  @Column_("text", {nullable: false})
+  name!: string
 
   @Column_("text", {nullable: false})
-  raw!: string
+  signer!: string
+
+  @Column_("text", {array: true, nullable: false})
+  relatedAddresses!: (string)[]
 }

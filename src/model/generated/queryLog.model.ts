@@ -25,6 +25,12 @@ export class QueryLog {
   @Column_("integer", {nullable: false})
   chainCount!: number
 
+  @Column_("text", {array: true, nullable: false})
+  chainIds!: (string)[]
+
   @Column_("integer", {nullable: false})
   txCount!: number
+
+  @Column_("integer", {nullable: false})
+  txSize!: number
 }

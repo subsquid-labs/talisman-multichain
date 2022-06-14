@@ -5,8 +5,9 @@ type Transaction @entity {
   createdAt: DateTime!
   section: String!
   method: String!
+  name: String!
+  signer: String!
   relatedAddresses: [String!]!
-  raw: String!
 }
 
 type QueryLog @entity {
@@ -16,7 +17,9 @@ type QueryLog @entity {
   endTime: BigInt!
   lengthMs: Int!
 	chainCount: Int!
+  chainIds: [String!]!
 	txCount: Int!
+  txSize: Int!
 }
 
 # this maintains a list of all the chains we're intested in
@@ -25,6 +28,8 @@ type ChainInfo @entity {
   url: String!
   latestBlock: BigInt!
   hash: String!
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
 type Metadata @entity {

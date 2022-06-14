@@ -18,4 +18,10 @@ export class ChainInfo {
 
   @Column_("text", {nullable: false})
   hash!: string
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  createdAt!: bigint
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  updatedAt!: bigint
 }
