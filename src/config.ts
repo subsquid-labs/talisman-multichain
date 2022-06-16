@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { gql } from 'graphql-request'
-import { TChainConfig } from './types'
+import { TChainConfig } from './chainStore'
 
 // the current squid block to start on
 // wish we could define this as -1 to start from the current block

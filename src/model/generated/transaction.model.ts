@@ -1,5 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
+import {Chain} from "./chain.model"
 
 @Entity_()
 export class Transaction {
@@ -33,4 +34,8 @@ export class Transaction {
 
   @Column_("text", {array: true, nullable: false})
   relatedAddresses!: (string)[]
+
+  @Index_()
+  @ManyToOne_(() => Chain, {nullable: false})
+  chain!: Chain
 }

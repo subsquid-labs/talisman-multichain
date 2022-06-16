@@ -1,7 +1,6 @@
-import { Enum } from '@polkadot/types';
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
-import { Transaction as TransactionModel } from "../../model";
+import { Transaction } from "../../model";
 import { formatAddress } from '../../utils'
 
 // how many items to return at a time
@@ -76,10 +75,10 @@ export class TransactionResolver {
     if(![5, 10, 20].includes(count)) count = DEFAULT_COUNT
     
     // fetch the result
-    const result = await manager.getRepository(TransactionModel).query(QUERY_BY_ADDRESS, [addressEncoded, lastId, count])
+    const result = await manager.getRepository(Transaction).query(QUERY_BY_ADDRESS, [addressEncoded, lastId, count])
 
     // format results
-    // some crazieness happening when trying to type 'item' as TransactionModel
+    // some crazieness happening when trying to type 'item' as Transaction
     // leaving as 'any' for now
     const resultFormatted = result.map((item: any) => { 
       const formattedItem: TransactionResult = {

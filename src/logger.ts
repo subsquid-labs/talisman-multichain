@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
 import { QueryLog } from "./model";
-import { TChainConfig } from './types'
+import { TChainConfig } from './chainStore'
 
 export default class Logger{
 

@@ -2,8 +2,8 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} f
 import * as marshal from "./marshal"
 
 @Entity_()
-export class ChainInfo {
-  constructor(props?: Partial<ChainInfo>) {
+export class Chain {
+  constructor(props?: Partial<Chain>) {
     Object.assign(this, props)
   }
 
@@ -12,6 +12,9 @@ export class ChainInfo {
 
   @Column_("text", {nullable: false})
   url!: string
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  startingBlock!: bigint
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   latestBlock!: bigint

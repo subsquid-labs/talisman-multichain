@@ -1,3 +1,13 @@
+type Chain @entity {
+  id: ID!
+  url: String!
+  startingBlock: BigInt!
+  latestBlock: BigInt!
+  hash: String!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
 type Transaction @entity {
   id: ID!
   chainId: String!
@@ -8,6 +18,7 @@ type Transaction @entity {
   name: String!
   signer: String!
   relatedAddresses: [String!]!
+  chain: Chain!
 }
 
 type QueryLog @entity {
@@ -20,16 +31,6 @@ type QueryLog @entity {
   chainIds: [String!]!
 	txCount: Int!
   txSize: Int!
-}
-
-# this maintains a list of all the chains we're intested in
-type ChainInfo @entity {
-  id: ID!
-  url: String!
-  latestBlock: BigInt!
-  hash: String!
-  createdAt: BigInt!
-  updatedAt: BigInt!
 }
 
 type Metadata @entity {

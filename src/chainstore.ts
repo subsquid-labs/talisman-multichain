@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
-import { ChainInfo, Metadata } from "./model";
-import { TChainConfig } from './types'
+import { Chain, Metadata } from "./model";
 
 const md5 = require('md5');
 
@@ -10,6 +9,14 @@ type TOptions = {
   /** Check for new chains every x blocks (x * 6 seconds = check for changes) - will default to 1 (every block) if not defined */
   timeout: number
 }
+
+export type TChainConfig = {
+  chainId: string
+  chainNumber: number
+  url: string
+  startBlock: number
+};
+
 
 const defaultOptions: TOptions = {
   timeout: 1
@@ -46,15 +53,16 @@ export default class ChainStore {
       
       // loop chains and add if not already
       for (const chain of this.chains) {
-        const chainDetails = await ctx.store.findOne(ChainInfo, chain.chainId)
+        const chainDetails = await ctx.store.findOne(Chain, chain.chainId)
         const chainHash = md5(JSON.stringify(chain))
         const timestamp = BigInt((new Date()).getTime())
         
         // if no entry, insert new item
         if(!chainDetails){
-          ctx.store.insert(ChainInfo, {
+          ctx.store.insert(Chain, {
             "id": chain.chainId,
             "url": chain.url,
+            "startingBlock": BigInt(chain?.startBlock||0),
             "latestBlock": BigInt(chain?.startBlock||0),
             "hash": chainHash,
             "createdAt": timestamp,
@@ -64,8 +72,9 @@ export default class ChainStore {
         // else if entry hash is different from that stored
         // we want to update the details
         else if(chainDetails?.hash !== chainHash){
-          ctx.store.upsert(ChainInfo, {
+          ctx.store.upsert(Chain, {
             "url": chain.url,
+            "startingBlock": BigInt(chain?.startBlock||0),
             "latestBlock": BigInt(chain?.startBlock||0),
             "hash": chainHash,
             "updatedAt": timestamp
@@ -85,7 +94,7 @@ export default class ChainStore {
   // call this once a new block has come in and we've parsed all the TXs
   updateChainLatestBlock(chainId: string, blockNumber: number){
     this.ctx.store.update(
-      ChainInfo, 
+      Chain, 
       {id: chainId}, 
       {
         "latestBlock": BigInt(blockNumber)
@@ -94,7 +103,7 @@ export default class ChainStore {
   }
 
   async all(){
-    const chains = await this.ctx.store.find(ChainInfo)
+    const chains = await this.ctx.store.find(Chain)
     return chains
   }
 }
