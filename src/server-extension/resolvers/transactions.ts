@@ -1,75 +1,103 @@
+import { Enum } from '@polkadot/types';
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
 import type { EntityManager } from 'typeorm'
 import { Transaction as TransactionModel } from "../../model";
+import { formatAddress } from '../../utils'
 
-const defaultCount = 10
+// how many items to return at a time
+const DEFAULT_COUNT = 10
+
+// the query to fetch the TXs based on address
+const QUERY_BY_ADDRESS = `
+  SELECT * FROM transaction
+  WHERE (
+    $1 = ANY(related_addresses) OR
+    $1 = signer
+  )
+  AND id < $2
+  ORDER BY id DESC
+  LIMIT $3
+`
 
 @ObjectType()
-export class Transaction {
-  constructor(props?: Partial<Transaction>) {
+export class TransactionResult {
+  constructor(props?: Partial<TransactionResult>) {
     Object.assign(this, props)
   }
 
-  @Field(() => String, { nullable: true })
-  chain_id!: string
+  @Field(() => String)
+  id!: string
 
-  @Field(() => BigInt, { nullable: true })
-  block_number!: bigint
+  @Field(() => String)
+  chainId!: string
 
-  @Field(() => Date, { nullable: true })
-  created_at!: Date
+  @Field(() => String)
+  name!: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => BigInt)
+  blockNumber!: bigint
+
+  @Field(() => Date)
+  createdAt!: Date
+
+  @Field(() => String)
   section!: string
 
-  @Field(() => String, { nullable: true })
+  @Field(() => String)
   method!: string
 
-  @Field(() => [String], { nullable: true })
-  related_addresses!: (string)[]
+  @Field(() => [String])
+  relatedAddresses!: (string)[]
 
-  @Field(() => String, { nullable: true })
-  raw!: string
+  @Field(() => String)
+  signer!: string
+
+  @Field(() => String)
+  direction!: String
 }
-
 
 @Resolver()
 export class TransactionResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
-  @Query(() => [Transaction])
+  @Query(() => [TransactionResult])
   async transactionsByAccount(
     @Arg('address', { nullable: false }) address: string,
-    @Arg('count', { nullable: true, defaultValue: defaultCount }) count: number,
+    @Arg('count', { nullable: true, defaultValue: DEFAULT_COUNT }) count: number,
     @Arg('lastId', { nullable: true, defaultValue: 'zzzzzzz' }) lastId: string,
-  ): Promise<Transaction[]> {
+  ): Promise<TransactionResult[]> {
     const manager = await this.tx()
-    
-    const query = `
-      SELECT * FROM transaction
-      WHERE $1 = ANY(related_addresses)
-      AND id < $2
-      ORDER BY id DESC
-      LIMIT $3
-    `
+
+    // encode the incoming address
+    const addressEncoded = formatAddress(address)
+  
     // limit to batches of 5, 10 or 20
     // default to 10 if count is not defined correctly
-    if(![5, 10, 20].includes(count)) count = defaultCount
+    if(![5, 10, 20].includes(count)) count = DEFAULT_COUNT
     
     // fetch the result
-    const result = await manager.getRepository(TransactionModel).query(query, [address, lastId, count])
+    const result = await manager.getRepository(TransactionModel).query(QUERY_BY_ADDRESS, [addressEncoded, lastId, count])
 
     // format results
-    const resultFormatted = result.map((item: Transaction) => {
-      return {
-        ...item,
+    // some crazieness happening when trying to type 'item' as TransactionModel
+    // leaving as 'any' for now
+    const resultFormatted = result.map((item: any) => { 
+      const formattedItem: TransactionResult = {
+        id: item.id,
         chainId: item.chain_id,
         blockNumber: item.block_number,
         createdAt: item.created_at,
         relatedAddresses: item.related_addresses,
-      }
+        name: item.name,
+        section: item.section,
+        method: item.method,
+        signer: item.signer,
+        direction: item.signer === addressEncoded ? 'OUTBOUND' : 'INBOUND'
+      } as TransactionResult
+
+      return formattedItem
     })
 
-    return resultFormatted as Transaction[]
+    return resultFormatted
   }
 }

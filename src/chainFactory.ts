@@ -1,6 +1,7 @@
 import { request, gql } from 'graphql-request'
 import { Transaction } from "./model";
 import { BlockHandlerContext } from "@subsquid/substrate-processor";
+import { formatAddress } from './utils'
 
 const BLOCK_QUERY = gql`
   query ($limit: Int, $blockNumber: Int) {
@@ -82,7 +83,9 @@ export default class ChainFactory{
           // <-- chain->block->tx level
 
           // find all unique addresses in the extrinsic
-          const addresses = this.filterAddresses(extrensic)
+          
+          const signerAddressFormatted = formatAddress(extrensic.signer)
+          const relatedAddressesFormatted = this.filterAddresses(extrensic)
           
           // if we're good to go, insert the TX
           await ctx.store.upsert(Transaction, {
@@ -92,9 +95,9 @@ export default class ChainFactory{
             "createdAt" : extrensic.created_at,
             "section" : extrensic.section,
             "method" : extrensic.method,
-            "name": extrensic.name,
-            "signer" : extrensic.signer,
-            "relatedAddresses" : addresses
+            "name" : extrensic.name,
+            "signer" : signerAddressFormatted,
+            "relatedAddresses" : relatedAddressesFormatted
           }, ['id'])
         }
         
@@ -121,13 +124,18 @@ export default class ChainFactory{
     const filteredAddresses = allAddresses.map(address => {
       if(
         address === "00000000000000000000000000000000000000000000000" || // filter out all 000...000 addresses 47 length
-        address === "000000000000000000000000000000000000000000000000" || // filter out all 000...000 addresses 48 length
         address.substring(0, 2) === '0x' // filter out all 0x addresses
       ){
         return
       }
 
-      return address
+      try {
+        // return substrate endoded address
+        return formatAddress(address) 
+      } catch (error) {
+        return null
+      }
+      
     }).filter(a=>a)
 
     return filteredAddresses
