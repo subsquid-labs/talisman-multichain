@@ -4,7 +4,7 @@ import { TChainConfig } from './types'
 
 // the current squid block to start on
 // wish we could define this as -1 to start from the current block
-export const START_BLOCK = 10740322
+export const START_BLOCK = 10762362
 
 // the number of blocks to query at once
 export const BLOCK_LIMIT = 20
@@ -15,13 +15,15 @@ export const BLOCK_LIMIT = 20
 export const chains: TChainConfig[] = [
   {
     "chainId": "polkadot",
+    "chainNumber": 0,
     "url": "https://polkadot.indexer.gc.subsquid.io/v4/graphql",
     "startBlock": START_BLOCK
   },
   {
     "chainId": "kusama",
+    "chainNumber": 2,
     "url": "https://kusama.indexer.gc.subsquid.io/v4/graphql",
-    "startBlock": 13125230
+    "startBlock": 13148608
   }
 ]
 

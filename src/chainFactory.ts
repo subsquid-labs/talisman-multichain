@@ -114,13 +114,14 @@ export default class ChainFactory{
 
   filterAddresses(extrensic){
     // pluck all address looking things from the full extrinsic
-    const matches = JSON.stringify(extrensic).matchAll( /[a-zA-Z0-9]{48}/g )
+    const matches = JSON.stringify(extrensic).matchAll( /[a-zA-Z0-9]{47}/g )
     // create an address array
     const allAddresses = [...new Set([...matches].map(match => match[0]).filter(s=>s))]
     // filter by addresses we don't want
     const filteredAddresses = allAddresses.map(address => {
       if(
-        address === "000000000000000000000000000000000000000000000000" || // filter out all 000...000 addresses
+        address === "00000000000000000000000000000000000000000000000" || // filter out all 000...000 addresses 47 length
+        address === "000000000000000000000000000000000000000000000000" || // filter out all 000...000 addresses 48 length
         address.substring(0, 2) === '0x' // filter out all 0x addresses
       ){
         return
