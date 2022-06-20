@@ -26,6 +26,9 @@ export class TransactionResult {
 
   @Field(() => String)
   id!: string
+  
+  @Field(() => String)
+  extrinsicId!: string
 
   @Field(() => String)
   chainId!: string
@@ -60,7 +63,7 @@ export class TransactionResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
 
   @Query(() => [TransactionResult])
-  async transactionsByAccount(
+  async transactionsByAddress(
     @Arg('address', { nullable: false }) address: string,
     @Arg('count', { nullable: true, defaultValue: DEFAULT_COUNT }) count: number,
     @Arg('lastId', { nullable: true, defaultValue: 'zzzzzzz' }) lastId: string,
@@ -83,6 +86,7 @@ export class TransactionResolver {
     const resultFormatted = result.map((item: any) => { 
       const formattedItem: TransactionResult = {
         id: item.id,
+        extrinsicId: item.extrinsicId,
         chainId: item.chain_id,
         blockNumber: item.block_number,
         createdAt: item.created_at,

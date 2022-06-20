@@ -22,6 +22,9 @@ export class Chain {
   @Column_("text", {nullable: false})
   hash!: string
 
+  @Column_("integer", {nullable: false})
+  ss58Format!: number
+
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   createdAt!: bigint
 

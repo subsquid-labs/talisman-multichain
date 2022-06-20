@@ -12,7 +12,7 @@ type TOptions = {
 
 export type TChainConfig = {
   chainId: string
-  chainNumber: number
+  ss58Format: number
   url: string
   startBlock: number
 };
@@ -62,6 +62,7 @@ export default class ChainStore {
           ctx.store.insert(Chain, {
             "id": chain.chainId,
             "url": chain.url,
+            "ss58Format": chain.ss58Format,
             "startingBlock": BigInt(chain?.startBlock||0),
             "latestBlock": BigInt(chain?.startBlock||0),
             "hash": chainHash,
@@ -74,6 +75,7 @@ export default class ChainStore {
         else if(chainDetails?.hash !== chainHash){
           ctx.store.upsert(Chain, {
             "url": chain.url,
+            "ss58Format": chain.ss58Format,
             "startingBlock": BigInt(chain?.startBlock||0),
             "latestBlock": BigInt(chain?.startBlock||0),
             "hash": chainHash,

@@ -83,13 +83,13 @@ export default class ChainFactory{
           // <-- chain->block->tx level
 
           // find all unique addresses in the extrinsic
-          
           const signerAddressFormatted = formatAddress(extrensic.signer)
           const relatedAddressesFormatted = this.filterAddresses(extrensic)
           
           // if we're good to go, insert the TX
           await ctx.store.upsert(Transaction, {
             "id": `${Date.parse(extrensic.created_at)}--${extrensic.id}--${chainId}`, // 2022-06-04T12:19:20.296000Z,
+            "extrinsicId": extrensic.id,
             "chainId" : chainId,
             "blockNumber" : extrensic.blockNumber,
             "createdAt" : extrensic.created_at,

@@ -4,12 +4,14 @@ type Chain @entity {
   startingBlock: BigInt!
   latestBlock: BigInt!
   hash: String!
+  ss58Format: Int!
   createdAt: BigInt!
   updatedAt: BigInt!
 }
 
 type Transaction @entity {
   id: ID!
+  extrinsicId: String!
   chainId: String!
   blockNumber: BigInt!
   createdAt: DateTime!

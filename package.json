@@ -20,6 +20,7 @@
     "@subsquid/graphql-server": "^0.1.5",
     "@subsquid/ss58": "^0.1.0",
     "@subsquid/substrate-processor": "^0.7.0",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.0",
     "graphql-request": "^4.3.0",
     "md5": "^2.3.0",

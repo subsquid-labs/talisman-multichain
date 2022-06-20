@@ -12,6 +12,9 @@ export class Transaction {
   id!: string
 
   @Column_("text", {nullable: false})
+  extrinsicId!: string
+
+  @Column_("text", {nullable: false})
   chainId!: string
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
