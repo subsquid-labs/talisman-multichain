@@ -86,7 +86,7 @@ export class TransactionResolver {
     const resultFormatted = result.map((item: any) => { 
       const formattedItem: TransactionResult = {
         id: item.id,
-        extrinsicId: item.extrinsicId,
+        extrinsicId: item.extrinsic_id,
         chainId: item.chain_id,
         blockNumber: item.block_number,
         createdAt: item.created_at,
