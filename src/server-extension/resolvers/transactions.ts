@@ -39,6 +39,9 @@ export class TransactionResult {
   @Field(() => BigInt)
   blockNumber!: bigint
 
+  @Field(() => BigInt)
+  indexInBlock!: bigint
+
   @Field(() => Date)
   createdAt!: Date
 
@@ -89,6 +92,7 @@ export class TransactionResolver {
         extrinsicId: item.extrinsic_id,
         chainId: item.chain_id,
         blockNumber: item.block_number,
+        indexInBlock : item.index_in_block,
         createdAt: item.created_at,
         relatedAddresses: item.related_addresses,
         name: item.name,

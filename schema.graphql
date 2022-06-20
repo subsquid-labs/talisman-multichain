@@ -14,6 +14,7 @@ type Transaction @entity {
   extrinsicId: String!
   chainId: String!
   blockNumber: BigInt!
+  indexInBlock: BigInt!
   createdAt: DateTime!
   section: String!
   method: String!

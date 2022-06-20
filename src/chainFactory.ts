@@ -11,12 +11,12 @@ const BLOCK_QUERY = gql`
         id
         blockHash
         blockNumber
+        indexInBlock
         created_at
         era
         tip
         signature
         signer
-        indexInBlock
         name
         section
         method
@@ -92,6 +92,7 @@ export default class ChainFactory{
             "extrinsicId": extrensic.id,
             "chainId" : chainId,
             "blockNumber" : extrensic.blockNumber,
+            "indexInBlock" : extrensic.indexInBlock,
             "createdAt" : extrensic.created_at,
             "section" : extrensic.section,
             "method" : extrensic.method,
