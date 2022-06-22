@@ -21,7 +21,7 @@ export class Transaction {
   @ManyToOne_(() => Chain, {nullable: false})
   chain!: Chain
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   ss58Format!: number
 
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})

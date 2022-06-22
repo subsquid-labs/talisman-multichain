@@ -19,18 +19,18 @@ export class QueryLog {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   endTime!: bigint
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   lengthMs!: number
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   chainCount!: number
 
   @Column_("text", {array: true, nullable: false})
   chainIds!: (string)[]
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   txCount!: number
 
-  @Column_("integer", {nullable: false})
+  @Column_("int4", {nullable: false})
   txSize!: number
 }
