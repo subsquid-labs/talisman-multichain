@@ -1,0 +1,1 @@
+{"buildTargets":["build","codegen","down","explore","kusamaVersions.json","migrate","migration","process","serve","start","typegen","up"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

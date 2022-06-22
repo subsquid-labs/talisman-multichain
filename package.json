@@ -2,28 +2,45 @@
   "name": "kusama-balances",
   "private": true,
   "scripts": {
+    "codegen": "sqd codegen",
     "build": "rm -rf lib && tsc",
     "init": "node db/init.js",
+    "db:create-migration": "npm run build && sqd db create-migration",
     "db:migrate": "npx sqd db migrate",
     "schema:reset": "",
     "processor:migrate": "echo skip",
+    "processor:dev-start": "npm run build && node -r dotenv/config lib/processor.js",
     "processor:start": "node lib/processor.js",
-    "processor:docker-run": "bash scripts/docker-run.sh",
     "query-node:start": "squid-graphql-server",
+    "release:hash": "sqd squid release chaindata@`git rev-parse --short HEAD`",
+    "release:test": "sqd squid release chaindata@test --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "release:latest": "sqd squid release chaindata@latest --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "release:next": "sqd squid release chaindata@next --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "update:test": "sqd squid update chaindata@test --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "update:test:resetdb": "sqd squid update chaindata@test --source git@github.com:TalismanSociety/chaindata.git#subsquid --hardReset",
+    "update:latest": "sqd squid update chaindata@latest --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "update:latest:resetdb": "sqd squid update chaindata@latest --source git@github.com:TalismanSociety/chaindata.git#subsquid --hardReset",
+    "update:next": "sqd squid update chaindata@next --source git@github.com:TalismanSociety/chaindata.git#subsquid",
+    "update:next:resetdb": "sqd squid update chaindata@next --source git@github.com:TalismanSociety/chaindata.git#subsquid --hardReset",
+    "processor:docker-run": "bash scripts/docker-run.sh",
     "lint": "npm run lint:prod -- --fix",
     "lint:prod": "eslint . --ext .ts --ignore-path .gitignore --max-warnings 0",
     "testout": "npm run build && node -r dotenv/config lib/processor.js",
     "migrationreset": "rm -rf db/migrations/*.js && npx sqd db drop && npx sqd db create &&npx sqd db create-migration Init && npx sqd db migrate"
   },
   "dependencies": {
+    "@polkadot/util-crypto": "^9.5.1",
     "@subsquid/archive-registry": "^0.0.6",
-    "@subsquid/cli": "^0.4.1",
+    "@subsquid/cli": "^0.4.0",
     "@subsquid/graphql-server": "^0.3.0",
     "@subsquid/ss58": "^0.1.0",
-    "@subsquid/substrate-processor": "^0.8.0",
+    "@subsquid/substrate-processor": "^0.7.2",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.0",
     "graphql-request": "^4.2.0",
+    "md5": "^2.3.0",
     "pg": "^8.7.3",
+    "type-graphql": "^1.1.1",
     "typeorm": "^0.2.41"
   },
   "devDependencies": {
@@ -39,5 +56,21 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-type-graphql": "^0.3.2",
     "typescript": "~4.6.2"
+  },
+  "importSort": {
+    ".ts": {
+      "style": "module"
+    },
+    ".tsx": {
+      "style": "module"
+    },
+    ".js": {
+      "style": "module"
+    }
+  },
+  "prettier": {
+    "printWidth": 120,
+    "semi": false,
+    "singleQuote": true
   }
 }

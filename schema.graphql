@@ -1,46 +1,45 @@
-type Account @entity {
-  "Account address"
+type Chain @entity {
   id: ID!
-  balance: BigInt!
-  historicalBalances: [HistoricalBalance!] @derivedFrom(field: "account")
+  url: String!
+  startingBlock: BigInt!
+  latestBlock: BigInt!
+  hash: String!
+  ss58Format: Int!
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
-type HistoricalBalance @entity {
+type Transaction @entity {
   id: ID!
-  account: Account!
-  balance: BigInt!
-  date: DateTime!
-}
-
-type TxState @entity {
-  id: ID!
+  extrinsicId: String!
   chainId: String!
+  chain: Chain!
+  ss58Format: Int!
   blockNumber: BigInt!
-  createdAt: DateTime!
+  indexInBlock: BigInt!
+  createdAt: String!
   section: String!
   method: String!
+  name: String!
+  signer: String!
   relatedAddresses: [String!]!
+  fee: BigInt!
+  events: String!
 }
 
 type QueryLog @entity {
   id: ID!
   blockNumber: BigInt!
-	startTime: DateTime!
-  endTime: DateTime!
+	startTime: BigInt!
+  endTime: BigInt!
   lengthMs: Int!
 	chainCount: Int!
+  chainIds: [String!]!
 	txCount: Int!
+  txSize: Int!
 }
 
-# this maintains a list of all the chains we're intested in
-type ChainInfo @entity {
-  id: ID!
-  url: String!
-  latestBlock: BigInt!
-}
-
-# this is a key/val store for anything
 type Metadata @entity {
   id: ID!
-  value: String|Int!
+  value: String!
 }
