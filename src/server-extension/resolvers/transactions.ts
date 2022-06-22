@@ -33,6 +33,9 @@ export class TransactionResult {
   @Field(() => String)
   chainId!: string
 
+  @Field(() => BigInt)
+  ss58Format!: BigInt
+
   @Field(() => String)
   name!: string
 
@@ -76,9 +79,9 @@ export class TransactionResolver {
     // encode the incoming address
     const addressEncoded = formatAddress(address)
   
-    // limit to batches of 5, 10 or 20
+    // limit to batches of 1, 5, 10 or 20
     // default to 10 if count is not defined correctly
-    if(![5, 10, 20].includes(count)) count = DEFAULT_COUNT
+    if(![1, 5, 10, 20].includes(count)) count = DEFAULT_COUNT
     
     // fetch the result
     const result = await manager.getRepository(Transaction).query(QUERY_BY_ADDRESS, [addressEncoded, lastId, count])
@@ -91,6 +94,7 @@ export class TransactionResolver {
         id: item.id,
         extrinsicId: item.extrinsic_id,
         chainId: item.chain_id,
+        ss58Format: item.ss58_format,
         blockNumber: item.block_number,
         indexInBlock : item.index_in_block,
         createdAt: item.created_at,

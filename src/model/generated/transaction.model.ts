@@ -17,6 +17,9 @@ export class Transaction {
   @Column_("text", {nullable: false})
   chainId!: string
 
+  @Column_("integer", {nullable: false})
+  ss58Format!: number
+
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   blockNumber!: bigint
 
@@ -44,4 +47,10 @@ export class Transaction {
   @Index_()
   @ManyToOne_(() => Chain, {nullable: false})
   chain!: Chain
+
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
+  fee!: bigint
+
+  @Column_("text", {nullable: false})
+  events!: string
 }

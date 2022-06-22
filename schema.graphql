@@ -13,6 +13,7 @@ type Transaction @entity {
   id: ID!
   extrinsicId: String!
   chainId: String!
+  ss58Format: Int!
   blockNumber: BigInt!
   indexInBlock: BigInt!
   createdAt: String!
@@ -22,6 +23,8 @@ type Transaction @entity {
   signer: String!
   relatedAddresses: [String!]!
   chain: Chain!
+  fee: BigInt!
+  events: String!
 }
 
 type QueryLog @entity {

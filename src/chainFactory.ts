@@ -42,7 +42,7 @@ export default class ChainFactory{
 
   async fetchChainData(chains, limit){
     // loop through all chains and fetch TXs
-    const chainData = await Promise.all(chains.map(async ({id, url, latestBlock}: any) => {
+    const chainData = await Promise.all(chains.map(async ({id, url, latestBlock, ss58Format}: any) => {
       const variables = {
         limit: limit,
         blockNumber: Number(latestBlock)
@@ -52,6 +52,7 @@ export default class ChainFactory{
       
       return {
         chainId: id,
+        ss58Format,
         result
       }
     }))
@@ -70,7 +71,8 @@ export default class ChainFactory{
   
       // pull out the relevant vars
       const { 
-        chainId, 
+        chainId,
+        ss58Format, 
         result 
       }: any = chain
 
@@ -79,32 +81,41 @@ export default class ChainFactory{
         // <-- chain->block level
         
         // parse all the TXs
-        for (const extrensic of extrinsics) {
+        for (const extrinsic of extrinsics) {
           // <-- chain->block->tx level
 
           // find all unique addresses in the extrinsic
-          const signerAddressFormatted = formatAddress(extrensic.signer)
-          const relatedAddressesFormatted = this.filterAddresses(extrensic)
-          
-          const sortingTimestamp = extrensic.created_at
+          const signerAddressFormatted = formatAddress(extrinsic.signer)
+          const relatedAddressesFormatted = this.filterAddresses(extrinsic)
 
+          // find the fee
+          const fee = this.attemptToDetermineFee(extrinsic)
+
+          // store the events
+          // should really store the events in a seperate DB
+          // and should store them in some sort of JSON (or normalised) way
+          const events = JSON.stringify(extrinsic.substrate_events);
+          
           // if we're good to go, insert the TX
           await ctx.store.upsert(Transaction, {
-            "id": `${Date.parse(sortingTimestamp)}--${extrensic.id}--${chainId}`, // 2022-06-04T12:19:20.296000Z,
-            "extrinsicId": extrensic.id,
+            "id": `${Date.parse(extrinsic.created_at)}--${extrinsic.id}--${chainId}`, // 2022-06-04T12:19:20.296000Z,
+            "extrinsicId": extrinsic.id,
             "chainId" : chainId,
-            "blockNumber" : extrensic.blockNumber,
-            "indexInBlock" : extrensic.indexInBlock,
-            "createdAt" : extrensic.created_at,
-            "section" : extrensic.section,
-            "method" : extrensic.method,
-            "name" : extrensic.name,
+            "chain" : chainId,
+            "ss58Format" : ss58Format,
+            "blockNumber" : extrinsic.blockNumber,
+            "indexInBlock" : extrinsic.indexInBlock,
+            "createdAt" : extrinsic.created_at,
+            "section" : extrinsic.section,
+            "method" : extrinsic.method,
+            "name" : extrinsic.name,
             "signer" : signerAddressFormatted,
-            "relatedAddresses" : relatedAddressesFormatted
+            "relatedAddresses" : relatedAddressesFormatted,
+            "fee" : fee,
+            "events" : events
           }, ['id'])
         }
         
-
         afterBlockProcessed({
           chain: {
             id: chainId,
@@ -118,9 +129,9 @@ export default class ChainFactory{
     return
   }  
 
-  filterAddresses(extrensic){
+  filterAddresses(extrinsic){
     // pluck all address looking things from the full extrinsic
-    const matches = JSON.stringify(extrensic).matchAll( /[a-zA-Z0-9]{47}/g )
+    const matches = JSON.stringify(extrinsic).matchAll( /[a-zA-Z0-9]{47}/g )
     // create an address array
     const allAddresses = [...new Set([...matches].map(match => match[0]).filter(s=>s))]
     // filter by addresses we don't want
@@ -142,5 +153,36 @@ export default class ChainFactory{
     }).filter(a=>a)
 
     return filteredAddresses
+  }
+
+  // --- Attempt to Determine the TX Fee based ---
+  // not sure how we're going to do this with all TXs
+  // we know that balances.transfer throws an event with
+  // balances.Withdraw as the fee, but is this the same for all TXs?
+  // do we need to have an index of all extrinsics with their associated events
+  // in order to determine the fees?
+  // ideally we want to store all the raw data here and do the fee parsing on the lookup
+  // then we wouldn't need to re-build all the data each time we changed anything
+  attemptToDetermineFee(extrinsic){
+
+    let fee = BigInt(0)
+
+    // we need a way to map balances.transfer and balances.Withdraw.params[0]
+    // could use a simple lookup table + lodash get
+    if(extrinsic.name === 'balances.transfer'){
+      const feeEvent = extrinsic.substrate_events.find(event => {
+        if(event.name === 'balances.Withdraw'){
+          return true
+          //return BigInt(event.params[1].value)
+        }
+        return false
+      })
+
+      if (feeEvent){
+        fee = BigInt(feeEvent.params[1].value)
+      }
+    }
+
+    return fee
   }
 }
