@@ -33,7 +33,7 @@ processor.addPostHook(async ctx => {
 
   // attempt to sync chain store object to the DB
   // twe let this run the in the background so it doesn't block
-  chainStore.sync(ctx)
+  await chainStore.sync(ctx)
 
   // fetch all chains
   const chains : ChainStore[] = await chainStore.all()
