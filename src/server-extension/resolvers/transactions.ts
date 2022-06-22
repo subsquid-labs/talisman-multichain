@@ -34,7 +34,7 @@ export class TransactionResult {
   chainId!: string
 
   @Field(() => BigInt)
-  ss58Format!: BigInt
+  ss58Format!: bigint
 
   @Field(() => String)
   name!: string
@@ -45,8 +45,8 @@ export class TransactionResult {
   @Field(() => BigInt)
   indexInBlock!: bigint
 
-  @Field(() => Date)
-  createdAt!: Date
+  @Field(() => String)
+  createdAt!: string
 
   @Field(() => String)
   section!: string
@@ -61,7 +61,7 @@ export class TransactionResult {
   signer!: string
 
   @Field(() => String)
-  direction!: String
+  direction!: string
 }
 
 @Resolver()
