@@ -23,8 +23,8 @@ export class Transaction {
   @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
   indexInBlock!: bigint
 
-  @Column_("timestamp with time zone", {nullable: false})
-  createdAt!: Date
+  @Column_("text", {nullable: false})
+  createdAt!: string
 
   @Column_("text", {nullable: false})
   section!: string

@@ -15,7 +15,7 @@ type Transaction @entity {
   chainId: String!
   blockNumber: BigInt!
   indexInBlock: BigInt!
-  createdAt: DateTime!
+  createdAt: String!
   section: String!
   method: String!
   name: String!

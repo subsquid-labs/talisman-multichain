@@ -86,9 +86,11 @@ export default class ChainFactory{
           const signerAddressFormatted = formatAddress(extrensic.signer)
           const relatedAddressesFormatted = this.filterAddresses(extrensic)
           
+          const sortingTimestamp = extrensic.created_at
+
           // if we're good to go, insert the TX
           await ctx.store.upsert(Transaction, {
-            "id": `${Date.parse(extrensic.created_at)}--${extrensic.id}--${chainId}`, // 2022-06-04T12:19:20.296000Z,
+            "id": `${Date.parse(sortingTimestamp)}--${extrensic.id}--${chainId}`, // 2022-06-04T12:19:20.296000Z,
             "extrinsicId": extrensic.id,
             "chainId" : chainId,
             "blockNumber" : extrensic.blockNumber,
