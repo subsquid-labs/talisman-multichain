@@ -12,7 +12,9 @@
     "processor:dev-start": "npm run build && node -r dotenv/config lib/processor.js",
     "processor:start": "node lib/processor.js",
     "query-node:start": "squid-graphql-server",
-    "release:hash": "sqd squid release xchain@`git rev-parse --short HEAD`"
+    "release:hash": "sqd squid release xchain@`git rev-parse --short HEAD`",
+    "testout": "npm run build && node -r dotenv/config lib/processor.js",
+    "migrationreset": "rm -rf db/migrations/*.js && npx sqd db drop && npx sqd db create &&npx sqd db create-migration Init && npx sqd db migrate"
   },
   "dependencies": {
     "@polkadot/api": "^8.4.2",
