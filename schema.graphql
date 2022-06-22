@@ -1,323 +1,45 @@
 type Chain @entity {
-  "talisman-defined id for this substrate chain"
   id: ID!
-
-  "is chain this a testnet?"
-  isTestnet: Boolean!
-
-  "index for sorting chains and evm networks in a user-friendly way"
-  sortIndex: Int
-
-  "hash of the first block on this chain"
-  genesisHash: String
-
-  "ss58 prefix for this chain"
-  prefix: Int
-
-  "talisman-defined name for this chain"
-  name: String
-
-  "chain-specified name of this chain"
-  chainName: String
-
-  "implementation name for this chain"
-  implName: String
-
-  "specification name for this chain"
-  specName: String
-
-  "specification version for this chain"
-  specVersion: String
-
-  "native token for this chain"
-  nativeToken: Token
-
-  "other tokens on this chain"
-  tokens: [Token!]! @derivedFrom(field: "squidImplementationDetailChain")
-
-  "account format for this chain"
-  account: String
-
-  "subscan endpoint for this chain"
-  subscanUrl: String
-
-  "talisman-defined substrate rpcs for this chain"
-  rpcs: [SubstrateRpc!]!
-
-  "health status of this chain"
-  isHealthy: Boolean!
-
-  "evm networks on this chain"
-  evmNetworks: [EvmNetwork!]! @derivedFrom(field: "substrateChain")
-
-  "parathreads of this chain (if this chain is a relaychain)"
-  parathreads: [Chain!]! @derivedFrom(field: "relay")
-
-  "paraId of this chain (if this chain is a parachain for another chain)"
-  paraId: Int
-
-  "relaychain of this chain (if this chain is a parachain for another chain)"
-  relay: Chain
-}
-
-type EvmNetwork @entity {
-  "the chain identifier used for signing ethereum transactions"
-  id: ID!
-
-  "is this network a testnet?"
-  isTestnet: Boolean!
-
-  "index for sorting chains and evm networks in a user-friendly way"
-  sortIndex: Int
-
-  "talisman-defined name for this network"
-  name: String
-
-  "native token for this network"
-  nativeToken: Token
-
-  "other tokens on this network"
-  tokens: [Token!]! @derivedFrom(field: "squidImplementationDetailEvmNetwork")
-
-  "block explorer url for this network"
-  explorerUrl: String
-
-  "talisman-defined ethereum rpcs for this network"
-  rpcs: [EthereumRpc!]!
-
-  "health status of this network"
-  isHealthy: Boolean!
-
-  "substrate chain this evm network runs on"
-  substrateChain: Chain
-}
-
-interface IToken {
-  "talisman-defined id for this token"
-  id: ID!
-
-  "is this a testnet token?"
-  isTestnet: Boolean!
-
-  "token symbol"
-  symbol: String
-
-  "token decimals"
-  decimals: Int
-
-  "coingecko id for this token"
-  coingeckoId: String
-
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-}
-
-type Token @entity {
-  "talisman-defined id for this token"
-  id: ID!
-
-  "implementation detail, can be removed once https://github.com/subsquid/squid/issues/41 is merged"
-  squidImplementationDetail: SquidImplementationDetail!
-
-  "implementation detail for relation lookups, can be removed once https://github.com/subsquid/squid/issues/41 is merged"
-  squidImplementationDetailNativeToChains: [Chain!]! @derivedFrom(field: "nativeToken")
-  "implementation detail for relation lookups, can be removed once https://github.com/subsquid/squid/issues/41 is merged"
-  squidImplementationDetailNativeToEvmNetworks: [EvmNetwork!]! @derivedFrom(field: "nativeToken")
-
-  "implementation detail for relation lookups, can be removed once https://github.com/subsquid/squid/issues/41 is merged"
-  squidImplementationDetailChain: Chain
-  "implementation detail for relation lookups, can be removed once https://github.com/subsquid/squid/issues/41 is merged"
-  squidImplementationDetailEvmNetwork: EvmNetwork
-}
-
-union SquidImplementationDetail =
-    NativeToken
-  | OrmlToken
-  | LiquidCrowdloanToken
-  | LiquidityProviderToken
-  | XcToken
-  | Erc20Token
-
-type NativeToken implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-
-  "minimum tokens per account"
-  existentialDeposit: BigInt
-
-  # TODO: Add support for forward chain lookups once https://github.com/subsquid/squid/issues/41 is merged
-
-  # "substrate chain this token is a native token on"
-  # chain: Chain
-
-  # TODO: Add support for forward evm lookups once https://github.com/subsquid/squid/issues/41 is merged
-
-  # "evm network this token is a native token on"
-  # evmNetwork: EvmNetwork
-}
-
-type OrmlToken implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-
-  "minimum tokens per account"
-  existentialDeposit: BigInt
-
-  "the on-chain orml TokenId used to identify this token"
-  stateKey: String
-
-  "substrate chain this token is an orml token on"
-  chain: Chain
-}
-
-type LiquidCrowdloanToken implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-
-  "the on-chain orml TokenId used to identify this token"
-  stateKey: String
-
-  "substrate chain this token is on"
-  chain: Chain
-}
-
-type LiquidityProviderToken implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-}
-
-type XcToken implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-}
-
-type Erc20Token implements IToken {
-  "talisman-defined id for this token"
-  id: ID!
-  "is this a testnet token?"
-  isTestnet: Boolean!
-  "token symbol"
-  symbol: String
-  "token decimals"
-  decimals: Int
-  "coingecko id for this token"
-  coingeckoId: String
-  "fiat/btc/eth/dot rates for this token"
-  rates: TokenRates
-
-  "on-chain erc20 contract address of this token"
-  contractAddress: String
-
-  "substrate chain this token is on"
-  chain: Chain
-
-  "evm network this token is on"
-  evmNetwork: EvmNetwork
-}
-
-type TokenRates {
-  "us dollar rate"
-  usd: Float
-
-  "australian dollar rate"
-  aud: Float
-
-  "new zealand dollar rate"
-  nzd: Float
-
-  "canadian dollar rate"
-  cud: Float
-
-  "hong kong dollar rate"
-  hkd: Float
-
-  "euro rate"
-  eur: Float
-
-  "british pound sterling rate"
-  gbp: Float
-
-  "japanese yen rate"
-  jpy: Float
-
-  "south korean won rate"
-  krw: Float
-
-  "chinese yuan rate"
-  cny: Float
-
-  "btc rate"
-  btc: Float
-
-  "eth rate"
-  eth: Float
-
-  "dot rate"
-  dot: Float
-}
-
-type SubstrateRpc {
-  "url of this substrate rpc"
   url: String!
-
-  "health status of this substrate rpc"
-  isHealthy: Boolean!
+  startingBlock: BigInt!
+  latestBlock: BigInt!
+  hash: String!
+  ss58Format: Int!
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
-type EthereumRpc {
-  "url of this ethereum rpc"
-  url: String!
+type Transaction @entity {
+  id: ID!
+  extrinsicId: String!
+  chainId: String!
+  chain: Chain!
+  ss58Format: Int!
+  blockNumber: BigInt!
+  indexInBlock: BigInt!
+  createdAt: String!
+  section: String!
+  method: String!
+  name: String!
+  signer: String!
+  relatedAddresses: [String!]!
+  fee: BigInt!
+  events: String!
+}
 
-  "health status of this ethereum rpc"
-  isHealthy: Boolean!
+type QueryLog @entity {
+  id: ID!
+  blockNumber: BigInt!
+	startTime: BigInt!
+  endTime: BigInt!
+  lengthMs: Int!
+	chainCount: Int!
+  chainIds: [String!]!
+	txCount: Int!
+  txSize: Int!
+}
+
+type Metadata @entity {
+  id: ID!
+  value: String!
 }
