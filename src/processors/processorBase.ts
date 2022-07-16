@@ -48,9 +48,9 @@ export function runProcessor(name: ChainName) {
         for (const block of ctx.blocks) {
             for (const item of block.items) {
                 if (item.kind === 'call') {
-                    if (item.call.parent != null || item.extrinsic.signature?.address == null) continue
+                    if (item.extrinsic.signature?.address == null) continue
 
-                    const { hash, call, signature, indexInBlock, id, fee } = item.extrinsic
+                    const { hash, call, signature, indexInBlock, fee } = item.extrinsic
 
                     const [section, method] = call.name.split('.')
 
@@ -61,7 +61,7 @@ export function runProcessor(name: ChainName) {
 
                     transactions.push(
                         new Transaction({
-                            id: id,
+                            id: call.id,
                             chain,
                             extrinsicHash: hash,
                             blockNumber: block.header.height,
