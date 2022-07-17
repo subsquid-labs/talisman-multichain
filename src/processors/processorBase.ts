@@ -54,14 +54,15 @@ export function runProcessor(name: ChainName) {
 
                     const [section, method] = call.name.split('.')
 
-                    const address =
+                    const address = (
                         signature.address.__kind == 'Id' || signature.address.__kind == 'AccountId'
                             ? signature.address.value
-                            : (signature.address as string)
+                            : signature.address
+                    ) as string
 
                     transactions.push(
                         new Transaction({
-                            id: id,
+                            id: `${name}-${id}`,
                             chain,
                             extrinsicHash: hash,
                             blockNumber: block.header.height,
