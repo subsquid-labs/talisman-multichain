@@ -14,13 +14,13 @@ type Transaction @entity {
   chainId: String!
   chain: Chain!
   extrinsicHash: String!
-  blockNumber: Int!
-  timestamp: DateTime!
+  blockNumber: Int! @index
+  timestamp: DateTime! @index
   indexInBlock: Int!
-  section: String!
-  method: String!
-  name: String!
-  signer: String!
+  section: String! @index
+  method: String! @index
+  name: String! @index
+  signer: String! @index
   fee: BigInt
   # relatedAddresses: [String!]!
   # events: String!

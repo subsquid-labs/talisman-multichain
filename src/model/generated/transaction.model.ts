@@ -21,24 +21,30 @@ export class Transaction {
   @Column_("text", {nullable: false})
   extrinsicHash!: string
 
+  @Index_()
   @Column_("int4", {nullable: false})
   blockNumber!: number
 
+  @Index_()
   @Column_("timestamp with time zone", {nullable: false})
   timestamp!: Date
 
   @Column_("int4", {nullable: false})
   indexInBlock!: number
 
+  @Index_()
   @Column_("text", {nullable: false})
   section!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   method!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   name!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   signer!: string
 
