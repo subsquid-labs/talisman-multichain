@@ -1,45 +1,44 @@
 type Chain @entity {
   id: ID!
-  url: String!
-  startingBlock: BigInt!
-  latestBlock: BigInt!
-  hash: String!
+  # url: String!
+  # startingBlock: BigInt!
+  latestBlock: Int!
+  # hash: String!
   ss58Format: Int!
-  createdAt: BigInt!
-  updatedAt: BigInt!
+  # createdAt: BigInt!
+  # updatedAt: BigInt!
 }
 
 type Transaction @entity {
   id: ID!
-  extrinsicId: String!
   chainId: String!
   chain: Chain!
-  ss58Format: Int!
-  blockNumber: BigInt!
-  indexInBlock: BigInt!
-  createdAt: String!
-  section: String!
-  method: String!
-  name: String!
-  signer: String!
-  relatedAddresses: [String!]!
-  fee: BigInt!
-  events: String!
+  extrinsicHash: String!
+  blockNumber: Int! @index
+  timestamp: DateTime! @index
+  indexInBlock: Int!
+  section: String! @index
+  method: String! @index
+  name: String! @index
+  signer: String! @index
+  fee: BigInt
+  # relatedAddresses: [String!]!
+  # events: String!
 }
 
-type QueryLog @entity {
-  id: ID!
-  blockNumber: BigInt!
-	startTime: BigInt!
-  endTime: BigInt!
-  lengthMs: Int!
-	chainCount: Int!
-  chainIds: [String!]!
-	txCount: Int!
-  txSize: Int!
-}
+# type QueryLog @entity {
+#   id: ID!
+#   blockNumber: BigInt!
+# 	startTime: BigInt!
+#   endTime: BigInt!
+#   lengthMs: Int!
+# 	chainCount: Int!
+#   chainIds: [String!]!
+# 	txCount: Int!
+#   txSize: Int!
+# }
 
-type Metadata @entity {
-  id: ID!
-  value: String!
-}
+# type Metadata @entity {
+#   id: ID!
+#   value: String!
+# }

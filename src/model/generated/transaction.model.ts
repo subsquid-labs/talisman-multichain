@@ -12,45 +12,42 @@ export class Transaction {
   id!: string
 
   @Column_("text", {nullable: false})
-  extrinsicId!: string
-
-  @Column_("text", {nullable: false})
   chainId!: string
 
   @Index_()
   @ManyToOne_(() => Chain, {nullable: false})
   chain!: Chain
 
-  @Column_("int4", {nullable: false})
-  ss58Format!: number
-
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  blockNumber!: bigint
-
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  indexInBlock!: bigint
-
   @Column_("text", {nullable: false})
-  createdAt!: string
+  extrinsicHash!: string
 
+  @Index_()
+  @Column_("int4", {nullable: false})
+  blockNumber!: number
+
+  @Index_()
+  @Column_("timestamp with time zone", {nullable: false})
+  timestamp!: Date
+
+  @Column_("int4", {nullable: false})
+  indexInBlock!: number
+
+  @Index_()
   @Column_("text", {nullable: false})
   section!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   method!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   name!: string
 
+  @Index_()
   @Column_("text", {nullable: false})
   signer!: string
 
-  @Column_("text", {array: true, nullable: false})
-  relatedAddresses!: (string)[]
-
-  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: false})
-  fee!: bigint
-
-  @Column_("text", {nullable: false})
-  events!: string
+  @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+  fee!: bigint | undefined | null
 }
